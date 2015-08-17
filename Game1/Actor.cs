@@ -18,7 +18,6 @@ namespace Game1
         public Vector2 position;
         public float speed = 0.4f;
         public event onCollisionEvent onCollision;
-        public int moveEps = 4;
         public ActorEvent onMoveEnd;
         public ActorState State { get { return state; } }
         float angle;
