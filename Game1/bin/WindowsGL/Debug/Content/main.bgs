@@ -1,0 +1,73 @@
+<Resource>
+
+<Settings>
+	<x>0</x>
+	<y>0</y>
+	<width>1000</width>
+	<height>1000</height>
+</Settings>
+
+<Sprite>
+	<Name>MainBackGroundTile</Name>
+	<File>plit.png</File>
+	<Width>100</Width>
+	<Height>100</Height>
+	<passable>true</passable>
+</Sprite>
+<Sprite>
+	<Name>fire</Name>
+	<File>fire.png</File>
+	<passable>true</passable>
+</Sprite>
+<Sprite>
+	<Name>hero</Name>
+	<File>hero.png</File>
+	<Width>100</Width>
+	<Height>100</Height>
+	<passable>false</passable>
+</Sprite>
+
+<Sprite>
+	<Name>box</Name>
+	<File>box.png</File>
+	<Width>100</Width>
+	<Height>100</Height>
+	<passable>false</passable>
+</Sprite>
+
+<Map>
+	<Name>main</Name>
+	<Width>10</Width>
+	<Height>10</Height>
+	<MainTileName>MainBackGroundTile</MainTileName>
+</Map>
+  
+<object>
+	<sprite>box</sprite>
+	<x>2</x>
+	<y>2</y>
+</object>
+<object>
+	<sprite>box</sprite>
+	<x>3</x>
+	<y>2</y>
+</object>
+<object>
+	<sprite>box</sprite>
+	<x>4</x>
+	<y>2</y>
+</object>
+<object>
+	<sprite>box</sprite>
+	<x>5</x>
+	<y>2</y>
+</object>
+
+<Person>
+	<name>Hero</name>
+	<sprite>hero</sprite>
+	<x>-50</x>
+	<y>-50</y>
+</Person>
+
+</Resource>

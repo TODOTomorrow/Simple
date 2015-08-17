@@ -1,0 +1,13 @@
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Game1.exe
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Game1.pdb
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\MonoGame.Framework.dll
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\OpenTK.dll
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\obj\x86\Debug\Game1.exe
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\obj\x86\Debug\Game1.pdb
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Content\Plit.png
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Content\main.bgs
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Content\hero.png
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Content\box.png
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Content\TextFile1.txt
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Content\f.fnt
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Content\fire.png
