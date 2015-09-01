@@ -9,6 +9,7 @@ using System.Xml;
 
 namespace Game1
 {
+    
     class TileMap : IDrawable
     {
         public SpriteBatch spriteBatch { set { this.sb = value; foreach (Tile t in data) t.spriteBatch = value; } }
@@ -16,12 +17,19 @@ namespace Game1
         public int HeightTile { get { return height; } }
         public int WidthPix { get { return width * mainTile.Width; } }
         public int HeightPix { get { return height * mainTile.Height; } }
+        public int MaxTileWidth { get { int w = int.MinValue; foreach (Tile t in data) if (t.Width > w) w = t.Width; return w; } }
+        public int MaxTileHeight { get { int h = int.MinValue; foreach (Tile t in data) if (t.Height > h) h = t.Height; return h; } }
         public event onCollisionEvent onCollision;
         int width;
         int height;
         Tile[,] data;
         SpriteBatch sb;
         Tile mainTile;
+        public void Reindex(Vector2 offset, Rectangle collisionRect)
+        {
+            foreach (Tile t in data)
+                t.Reindex(offset, collisionRect);
+        }
         public TileMap(Tile defaultTile, int width, int height, SpriteBatch sb = null)
         {
             this.width = width;
@@ -48,10 +56,12 @@ namespace Game1
         {
             if (width == 0) width = this.width;
             if (height == 0) height = this.height;
-            int startX = (int)(x / mainTile.Width);
-            int startY = (int)(y / mainTile.Height);
-            int endX = (int)((x + width) / mainTile.Width + 1);
-            int endY = (int)((y + height) / mainTile.Height + 1);
+            int startX = (int)(-x / mainTile.Width);
+            int startY = (int)(-y / mainTile.Height);
+            if (startX > 0) startX--;
+            if (startY > 0) startY--;
+            int endX = (int)((-x + width) / mainTile.Width + 1);
+            int endY = (int)((-y + height) / mainTile.Height + 1);
             for (int i = startY; i < endY && i < this.height; i++)
                 for (int j = startX; j < endX && j < this.width; j++)
                     data[i, j].Draw(x, y);
@@ -62,23 +72,27 @@ namespace Game1
 
         }
 
-        public bool TryCollision(Actor act, Vector2 newPos)
+        public bool TryCollision(Actor act, Vector2 newPos,Vector2 globalOffset = new Vector2(),float angle = float.NaN)
         {
             foreach (Tile t in data)
-                if (act.TryCollision(t, new Vector2(0, 0), newPos))
+            {
+                if (act.TryCollision(t, globalOffset, newPos+globalOffset, (float.IsNaN(angle)) ? act.angle : angle))
                     return true;
+            }
             return false;
         }
 
-        public bool Collision(Actor act)
+        public bool Collision(Actor act,Vector2 offset)
         {
             foreach (Tile t in data)
-                if (act.Collision(t, new Vector2(0, 0), true))
+                if (CollisionRect.isNear(act.cr,t.cr) &&
+                    act.Collision(t, offset, true))
                 {
                     if (onCollision != null) onCollision(this, act);
                     return true;
                 }
             return false;
         }
+
     }
 }

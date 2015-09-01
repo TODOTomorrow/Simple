@@ -3,71 +3,50 @@
 <Settings>
 	<x>0</x>
 	<y>0</y>
-	<width>1000</width>
-	<height>1000</height>
 </Settings>
 
 <Sprite>
-	<Name>MainBackGroundTile</Name>
-	<File>plit.png</File>
-	<Width>100</Width>
-	<Height>100</Height>
-	<passable>true</passable>
-</Sprite>
-<Sprite>
-	<Name>fire</Name>
-	<File>fire.png</File>
+	<Name>gnd</Name>
+	<File>gnd.png</File>
+  <File>gnd2.png</File>
+  <File>gnd3.png</File>
+  <File>gnd.png</File>
+	<Width>50</Width>
+	<Height>50</Height>
 	<passable>true</passable>
 </Sprite>
 <Sprite>
 	<Name>hero</Name>
 	<File>hero.png</File>
-	<Width>100</Width>
-	<Height>100</Height>
+	<Width>50</Width>
+	<Height>50</Height>
 	<passable>false</passable>
 </Sprite>
-
 <Sprite>
 	<Name>box</Name>
 	<File>box.png</File>
-	<Width>100</Width>
-	<Height>100</Height>
+	<Width>50</Width>
+	<Height>50</Height>
 	<passable>false</passable>
 </Sprite>
-
+  
 <Map>
 	<Name>main</Name>
-	<Width>10</Width>
-	<Height>10</Height>
-	<MainTileName>MainBackGroundTile</MainTileName>
+	<Width>20</Width>
+	<Height>20</Height>
+	<MainTileName>gnd</MainTileName>
 </Map>
   
 <object>
 	<sprite>box</sprite>
-	<x>2</x>
-	<y>2</y>
+	<x>10</x>
+	<y>12</y>
 </object>
-<object>
-	<sprite>box</sprite>
-	<x>3</x>
-	<y>2</y>
-</object>
-<object>
-	<sprite>box</sprite>
-	<x>4</x>
-	<y>2</y>
-</object>
-<object>
-	<sprite>box</sprite>
-	<x>5</x>
-	<y>2</y>
-</object>
-
 <Person>
 	<name>Hero</name>
 	<sprite>hero</sprite>
-	<x>-50</x>
-	<y>-50</y>
+	<x>300</x>
+	<y>300</y>
 </Person>
 
 </Resource>

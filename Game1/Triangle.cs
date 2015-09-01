@@ -13,11 +13,20 @@ namespace Game1
     {
         public event onCollisionEvent onCollision;
         Vector2[] points = new Vector2[3];
+        Vector2[] rotatedPoints = new Vector2[3];
+        float angle;
+        CollisionRect cr;
+        public void Move(Vector2 to)
+        {
+            for (int i=0;i<points.Length;i++)
+                points[i]+=to;
+        }
         public Triangle(Vector2 p1, Vector2 p2, Vector2 p3)
         {
             points[0] = p1;
             points[1] = p2;
             points[2] = p3;
+            cr = new CollisionRect(int.MaxValue,int.MaxValue);
         }
         public static double Area(Vector2 a, Vector2 b, Vector2 c)
         {
@@ -25,9 +34,9 @@ namespace Game1
         }
         public double Area(Vector2 offset)
         {
-            Vector2 a = points[0] + offset;
-            Vector2 b = points[1] + offset;
-            Vector2 c = points[2] + offset;
+            Vector2 a = points[0];
+            Vector2 b = points[1];
+            Vector2 c = points[2];
             return Math.Abs((a.X - c.X) * (b.Y - c.Y) + (b.X - c.X) * (c.Y - a.Y));
         }
         public bool Collision(Vector2 p, Vector2 thisOffset, Vector2 offset)
@@ -62,14 +71,29 @@ namespace Game1
             Triangle t = new Triangle(points[0], points[1], points[2]);
             return t;
         }
-        public void Rotate(float angle)
+
+        public void Rotate(float angle,Vector2 offset)
         {
-            return;//TODO
-            for (int i = 0; i < points.Length; i++)
+            this.angle = angle;
+            for (int i = 0; i < rotatedPoints.Length; i++)
             {
-                points[i].X = points[i].X * (float)Math.Cos(angle) + points[i].Y * (float)Math.Sin(angle);
-                points[i].Y = points[i].X * (float)Math.Sin(angle) + points[i].Y * (float)Math.Cos(angle);
+                double x = (double)points[i].X;
+                double x0 = offset.X;
+                double y = points[i].Y;
+                double y0 = offset.Y;
+                points[i].X =  (float)(x0 + (x - x0) * Math.Cos(angle) - (y - y0) * Math.Sin(angle));
+                points[i].Y = (float)(y0 + (y - y0) * Math.Cos(angle) + (x - x0) * Math.Sin(angle));
             }
+        }
+
+        public CollisionRect Reindex(Vector2 offset, Rectangle collisionRectangle)
+        {
+            //foreach (Vector2 p in points)
+            //{
+                cr.x = (int)((offset + points[0]).X / collisionRectangle.Width);
+                cr.y = (int)((offset + points[0]).Y / collisionRectangle.Height);
+            //}
+            return cr;
         }
     }
 }

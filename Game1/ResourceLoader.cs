@@ -64,6 +64,7 @@ namespace Game1
                 string name = "";
                 List<Tile> tiles = new List<Tile>();
                 Rectangle pos = new Rectangle();
+                float angle = 0;
                 Dictionary<string, string> opts = new Dictionary<string, string>();
                 foreach (XmlNode child in node.ChildNodes)
                 {
@@ -92,12 +93,17 @@ namespace Game1
                             try { pos.Height = Convert.ToInt32(child.InnerText); }
                             catch { Game1.dbg.Log("Incorrect person height"); }
                             break;
+                        case "rotated":
+                            try { angle = Convert.ToInt32(child.InnerText); }
+                            catch { Game1.dbg.Log("Sprite incorrect height"); }
+                            angle = angle * (float)Math.PI / 180;
+                            break;
                         default:
                             opts.Add(child.Name, child.InnerText);
                             break;
                     }
                 }
-                Actor act = new Actor(pos,name);
+                Actor act = new Actor(pos, name, angle);
                 act.AddTile(tiles);
                 Persons.Add(act);
             }
@@ -110,12 +116,13 @@ namespace Game1
             {
                 Dictionary<string, string> opts = new Dictionary<string, string>();
                 string name = "";
-                string fileName = "";
+                List<string> fileName = new List<string>();
                 int width = -1;
                 int height = -1;
                 int x = -1;
                 int y = -1;
                 bool passable = true;
+                float angle = 0;
                 foreach (XmlNode child in node.ChildNodes)
                 {
                     child.InnerText = child.InnerText.Trim();
@@ -125,7 +132,7 @@ namespace Game1
                             name = child.InnerText.ToLower();
                             break;
                         case "file":
-                            fileName = child.InnerText;
+                            fileName.Add(child.InnerText);
                             break;
                         case "width":
                             try { width = Convert.ToInt32(child.InnerText); }
@@ -138,17 +145,26 @@ namespace Game1
                         case "passable":
                             passable = (child.InnerText == "true") ? true : false;
                             break;
+                        case "rotated":
+                            try { angle = Convert.ToInt32(child.InnerText); }
+                            catch { Game1.dbg.Log("Sprite incorrect height"); }
+                            angle = angle * (float)Math.PI / 180;
+                            break;
                         default:
                             opts.Add(child.Name, child.InnerText);
                             break;
                     }
                 }
                 if (name == "") { Game1.dbg.Log("Sprite defined, but not described."); continue; }
-                if (fileName == "") { Game1.dbg.Log("Sprite not associated with any image file"); continue; }
-                Tile t = new Tile(fileName);
+                //if (fileName == "") { Game1.dbg.Log("Sprite not associated with any image file"); continue; }
+                if (fileName.Count == 0) { Game1.dbg.Log("Sprite not associated with any image file"); continue; }
+                Tile t = new Tile(fileName[0]);
                 t.name = name;
                 t.passable = passable;
-                t.Resize();
+                t.Resize(width, height);
+                t.Rotate(angle);
+                foreach (string fn in fileName)
+                    t.AddImg(fn);
                 Sprites.Add(t.name, t);
             }
         }
@@ -197,7 +213,7 @@ namespace Game1
                 }
                 int counter = 0;
 
-                foreach (XmlNode objNode in xmlDc.SelectNodes("Resource/object"))
+                foreach (XmlNode objNode in xmlDc.SelectNodes("Resource/MapObject"))
                 {
                     mapObject mobj = new mapObject();
                     foreach (XmlNode childObj in objNode.ChildNodes)

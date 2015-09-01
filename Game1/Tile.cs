@@ -12,28 +12,44 @@ namespace Game1
     class Tile : ICloneable, IDrawable
     {
         public static Game g;
+        public static Random randomizer = new Random();
         public string name;
         public Dictionary<string, string> options;
         public SpriteBatch spriteBatch { set { this.sb = value; } }
         public Vector2 position;
-        public int Width { get { return img.Width; } }
-        public int Height { get { return img.Height; } }
+        public int Width { get { return contour.Width; } }
+        public int Height { get { return contour.Height; } }
         public bool passable;
         public event onCollisionEvent onCollision;
+        public CollisionRect cr;
+        public bool Visible = true;
 
-        Texture2D img;
+        int imgNum;
+        List<Texture2D> img;
         Rectangle contour;
         SpriteBatch sb;
         float angle = 0;
         List<Triangle> collisionContur;
+        Vector2 center;
+
+        public CollisionRect Reindex(Vector2 offset, Rectangle collisionRectangle)
+        {
+            foreach (Triangle trgl in collisionContur)
+            {
+                cr = trgl.Reindex(offset + position, collisionRectangle);
+            }
+            return cr;
+        }
 
         public void Rotate(float angle)
         {
             this.angle = angle;
-            foreach (Triangle t in collisionContur)
-                t.Rotate(angle);
         }
-
+        public void AddImg(string imageName)
+        {
+            img.Add(g.Content.Load<Texture2D>(imageName));
+            //TODO add check size
+        }
         public static List<Triangle> CreateContour(Rectangle r)
         {
             List<Triangle> trgls = new List<Triangle>();
@@ -59,46 +75,50 @@ namespace Game1
             t.collisionContur = new List<Triangle>();
             foreach (Triangle tr in collisionContur)
                 t.collisionContur.Add((Triangle)tr.Clone());
+            t.center = new Vector2(center.X,center.Y);
+            t.angle = angle;
+            imgNum = randomizer.Next(img.Count - 1);
+            t.imgNum = imgNum;
             return t;
         }
         public void Resize(int width = -1, int height = -1)
         {
-            if (width <= 0) width = img.Width;
-            if (height <= 0) height = img.Height;
+            if (width <= 0) width = img[0].Width;
+            if (height <= 0) height = img[0].Height;
             contour.Width = width;
             contour.Height = height;
             collisionContur = CreateContour(contour);
+            center = new Vector2(width / 2, height / 2);
         }
         public Tile(string imageName = null, SpriteBatch sb = null)
         {
+            img = new List<Texture2D>();
             if (imageName != null)
             {
-                img = g.Content.Load<Texture2D>(imageName);
-                contour = new Rectangle(0, 0, img.Width, img.Height);
+                img.Add(g.Content.Load<Texture2D>(imageName));
+                contour = new Rectangle(0, 0, img[0].Width, img[0].Height);
+                center = new Vector2(img[0].Width / 2, img[0].Height / 2);
             }
             passable = true;
             options = new Dictionary<string, string>();
             this.sb = sb;
             position = new Vector2(0, 0);
             collisionContur = CreateContour(contour);
+            cr = new CollisionRect(int.MaxValue, int.MaxValue);
         }
 
-        public void Draw(float x, float y, int width = 0, int height = 0)
+        public virtual void Draw(float x, float y, int width = 0, int height = 0)
         {
-            if (width == 0) width = img.Width;
-            if (height == 0) height = img.Height;
-            sb.Begin();
-            Vector2 cc = new Vector2(img.Width / 2, img.Height / 2);
-            Rectangle r = new Rectangle((int)position.X + (int)x + img.Width / 2,
-                                        (int)position.Y + (int)y + img.Height / 2, img.Width, img.Height);
-            sb.Draw(img, r, null, Color.White, angle, cc, SpriteEffects.None, 0);
-            sb.End();
+            if (!Visible) return;
+            contour.X = (int)position.X + (int)x + contour.Width / 2;
+            contour.Y = (int)position.Y + (int)y + contour.Height / 2;
+            sb.Draw(img[imgNum], contour, null, Color.White, angle, center, SpriteEffects.None, 0);
         }
         public void Update(GameTime gt)
         {
 
         }
-        public bool TryCollision(Tile t, Vector2 thisOffset, Vector2 offset)
+        public bool TryCollision(Tile t, Vector2 thisOffset, Vector2 offset,float angle)
         {
             if (t.passable || passable) return false;
             foreach (Triangle trgl in collisionContur)

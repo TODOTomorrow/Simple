@@ -89,26 +89,86 @@ namespace Game1
             scn = rsldr.CreateStage(spriteBatch,"main");
             uc = new UserControl();
             uc.onKeydown += keyDowned;
-            uc.onMouseMove += mouseMoved;
+            uc.onMouseLeftDown += mouseMoved;
             IsMouseVisible = true;
+            scn.CalibrateCollisions();
+            scn.Reindex();
+            mainHero.onCollision += onCollision;
+            mainHero.onMove += onActorMoved;
+            mainHero.speed = 0.5f;
+            mainHero.RotateSpeed = 100;
+            scn.window.X = 100;
+            scn.window.Y = 100;
+            scn.onMapOut += onSomebodyMapout;
+            //mainHero.Rotate((float)(Math.PI*2/3));
+            //makeMoveTest(mainHero);
         }
+        void onSomebodyMapout(Actor act)
+        {
+            act.Stop();
+            if (act.position.X < 0) act.position.X = 0;
+            if (act.position.Y < 0) act.position.Y = 0;
+            if (act.position.X + act.Width > scn.Background.WidthPix) act.position.X = scn.Background.WidthPix - act.Width;
+            if (act.position.Y + act.Height > scn.Background.HeightPix) act.position.Y = scn.Background.HeightPix - act.Height;
+        }
+        void onActorMoved(Actor act)
+        {
+            int newX = 0, newY = 0;
+            if (ActorPositionInScreen(act).X > 500) newX += 5;
+            if (ActorPositionInScreen(act).X < 100) newX -= 5;
+            if (ActorPositionInScreen(act).Y < 100) newY -= 5;
+            if (ActorPositionInScreen(act).Y > 300) newY += 5;
+            if (scn.window.X + newX >= 0) scn.window.X += newX;
+            if (scn.window.Y + newY >=0) scn.window.Y +=newY;
+        }
+        Vector2 ActorPositionInScreen(Actor act)
+        {
+            return (act.position - scn.window.Location.ToVector2());
+        }
+        void makeMoveTest(Actor a)
+        {
+            List<Vector2> points = new List<Vector2>();
+            for (int i=0;i<500;i+=10)
+                for (int j = 0; j < 500; j+=10)
+                {
+                    if (scn.TryCollision(a,new Vector2(i,j)))
+                        points.Add(new Vector2(i,j));
+                }
+        }
+        void onCollision(Object a,Object b)
+        {
 
+        }
         void keyDowned(KeyboardState ks)
         {
-            int k = 10;
+            int k = 5;
             Vector2 curPos = mainHero.position;
+            float rotateAngle = 0;
             if (mainHero.State == ActorState.Move) return;
-            if (ks.IsKeyDown(Keys.W))   curPos.Y-=k;
-            if (ks.IsKeyDown(Keys.A))   curPos.X-=k;
-            if (ks.IsKeyDown(Keys.S))   curPos.Y+=k;
-            if (ks.IsKeyDown(Keys.D))   curPos.X+=k;
-
-            if ((curPos != mainHero.position) && !(scn.Background.TryCollision(mainHero, curPos)))
+            if (ks.IsKeyDown(Keys.W)) { curPos.Y -= k; rotateAngle = (float)Math.PI * 3 / 2; }
+            if (ks.IsKeyDown(Keys.A)) { curPos.X -= k; rotateAngle = (float)Math.PI; }
+            if (ks.IsKeyDown(Keys.S)) { curPos.Y += k; rotateAngle = (float)Math.PI / 2; }
+            if (ks.IsKeyDown(Keys.D)) { curPos.X += k; rotateAngle = 0; }
+            mainHero.Rotate(rotateAngle);
+            if ((curPos != mainHero.position) && !(scn.TryCollision(mainHero, curPos)))
                 mainHero.Move(curPos);
         }
+        int counter = 0;
         void mouseMoved(Vector2 c)
         {
-            mainHero.Rotate(c);
+            
+         /*   if (counter==2)
+                mainHero.Rotate((float)Math.PI / 2);
+            if (counter == 1)
+                mainHero.Rotate((float)Math.PI);
+            if (counter == 0)
+                mainHero.Rotate((float)Math.PI * 3 / 2);
+            if (counter == 3)
+                mainHero.Rotate((float)Math.PI *2);
+            counter++;*/
+            if (counter == 4) counter = 0;
+            //if (!(scn.Background.TryCollision(mainHero, mainHero.position, c)))
+                mainHero.Rotate(c);
         }
         protected override void UnloadContent()
         {
