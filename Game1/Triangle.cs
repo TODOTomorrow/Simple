@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace Game1
 {
-    class Triangle : ICloneable
+    public class Triangle : ICloneable
     {
         public event onCollisionEvent onCollision;
         Vector2[] points = new Vector2[3];

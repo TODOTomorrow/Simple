@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace Game1
 {
-    class Tile : ICloneable, IDrawable
+    public class Tile : ICloneable, IDrawable
     {
         public static Game g;
         public static Random randomizer = new Random();

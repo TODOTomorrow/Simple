@@ -9,9 +9,9 @@ using System.Xml;
 
 namespace Game1
 {
-    delegate void ActorEvent(Actor act);
-    enum ActorState { Stop, Move }
-    class Actor : IDrawable
+    public delegate void ActorEvent(Actor act);
+    public enum ActorState { Stop, Move }
+    public class Actor : IDrawable
     {
         public string name;
         public SpriteBatch spriteBatch { set { this.sb = value; foreach (Tile t in tiles) t.spriteBatch = value; } }
@@ -125,6 +125,16 @@ namespace Game1
         public void Stop()
         {
             state = ActorState.Stop;
+        }
+        public Actor(String name, Tile t,int x,int y)
+        {
+            profile = new Rectangle();
+            this.name = name;
+            this.position = new Vector2(x,y);
+            tiles = new List<Tile>();
+            cr = new CollisionRect(int.MaxValue, int.MaxValue);
+            RotateSpeed = 2.7f;
+            AddTile(t, 0, 0);
         }
         public Actor(Rectangle profile, string name = "",float angle = 0)
         {

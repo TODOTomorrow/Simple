@@ -51,6 +51,12 @@
     <Compile Include="UserControl.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="KopiLua">
+      <HintPath>Content\nlua\net40\KopiLua.dll</HintPath>
+    </Reference>
+    <Reference Include="NLua">
+      <HintPath>Content\nlua\net40\NLua.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK">
       <HintPath>$(MSBuildProgramFiles32)\MonoGame\v3.0\Assemblies\WindowsGL\OpenTK.dll</HintPath>
     </Reference>
@@ -106,11 +112,15 @@
     <None Include="Content\f.fnt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Content\init.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Content\main - копия.bgs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Content\main.bgs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </None>
     <None Include="Content\testMap.bgs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

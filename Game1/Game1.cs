@@ -84,7 +84,7 @@ namespace Game1
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            ResourceLoader rsldr = new ResourceLoader("./Content/main.bgs");
+            ResourceLoader rsldr = new ResourceLoader("./Content/init.lua");
             mainHero = rsldr.Persons[0];
             scn = rsldr.CreateStage(spriteBatch,"main");
             uc = new UserControl();

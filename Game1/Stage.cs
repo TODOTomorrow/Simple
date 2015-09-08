@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace Game1
 {
-    struct CollisionRect
+    public struct CollisionRect
     {
         public int x;
         public int y;
@@ -52,8 +52,8 @@ namespace Game1
         void Draw(float x, float y, int width = 0, int height = 0);
         void Update(GameTime gt);
     }
-    delegate void onCollisionEvent(Object o1, Object o2);
-    delegate void onEventTileMap(Actor act);
+    public delegate void onCollisionEvent(Object o1, Object o2);
+    public delegate void onEventTileMap(Actor act);
     class Stage 
     {
         public int Width { get { return background.WidthPix; } }

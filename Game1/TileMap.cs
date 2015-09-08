@@ -45,6 +45,10 @@ namespace Game1
             this.sb = sb;
             this.mainTile = defaultTile;
         }
+        public void AddObject(Tile t, int x, int y)
+        {
+            AddObject(t, new Vector2(x, y));
+        }
         public void AddObject(Tile t, Vector2 pos)
         {
             data[(int)pos.Y, (int)pos.X] = (Tile)t.Clone();
