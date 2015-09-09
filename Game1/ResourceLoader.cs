@@ -60,9 +60,13 @@ namespace Game1
                 return actors;
             }
 
-            public Tile CreateTile(string name,string filename)
+            public Tile CreateTile(string name,string filename,int frameWidth = -1)
             {
-                Tile t = new Tile(filename);
+                Tile t;
+                if (frameWidth == -1)
+                    t = new Tile(filename);
+                else
+                    t = new Tile(filename, null, frameWidth);
                 t.name = name;
                 tileList[name] = t;
                 return t;

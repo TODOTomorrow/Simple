@@ -23,6 +23,10 @@ namespace Game1
         public event onCollisionEvent onCollision;
         public CollisionRect cr;
         public bool Visible = true;
+        public bool NeedAnim = false;
+        public int frameWidth { get { return currFrameRect.Width; } set { currFrameRect.Width = value; } } //ВЫСОТА КАДРА
+        public int frameHeigth { get { return currFrameRect.Height; } set { currFrameRect.Height = value; } }//ШИРИНА КАДРА
+        public float animSpeed = 200;//СКОРОСТЬ АНИМАЦИИ
 
         int imgNum;
         List<Texture2D> img;
@@ -31,6 +35,45 @@ namespace Game1
         float angle = 0;
         List<Triangle> collisionContur;
         Vector2 center;
+
+        private Rectangle currFrameRect;
+        private static int[] locusOfFrame; //МАССИВ ПОСЛ-И КАДРОВ
+        //private int frame = 0;//НОМЕР ТЕКУЩЕГО КАДРА ИЗ МАССИВА locus_of_frame
+        private float time = 0;
+
+        public bool Animate(int[] anim = null)
+        {
+            int i;
+            if (anim == null)
+            {
+                //Генерируем стандартную последовательность анимации
+                anim = new int[img[imgNum].Width/currFrameRect.Width];
+                for (i = 0; i < anim.Length; i++)
+                    anim[i] = i;
+            }
+            for (i = 0; i < anim.LongLength; i++)
+            {
+                if ((anim[i] * frameWidth) > img[imgNum].Width)
+                {
+                    return false;
+                }
+            }
+            //ТУТ МЫ ВСЕ ЗАНУЛЯЕМ, Т.К. НУЖНО НАЧАТЬ НОВУЮ АНИМАЦИЮ => tile_anim НЕЛЬЗЯ ВЫЗЫВАТЬ ПОСТОЯННО, ИНАЧЕ ВСЕ СЛОМАЕТСЯ
+            time = 0;
+            //frame = 0;
+            currFrameRect.X = 0;
+            currFrameRect.Y = 0;
+
+            locusOfFrame = new int[anim.Length];
+            for (i = 0; i < anim.Length; i++)
+                locusOfFrame[i] = anim[i];
+
+            NeedAnim = true;
+
+            return true;
+        }
+
+        
 
         public CollisionRect Reindex(Vector2 offset, Rectangle collisionRectangle)
         {
@@ -79,25 +122,35 @@ namespace Game1
             t.angle = angle;
             imgNum = randomizer.Next(img.Count - 1);
             t.imgNum = imgNum;
+            t.currFrameRect = new Rectangle(currFrameRect.X, currFrameRect.Y, currFrameRect.Width, currFrameRect.Height);
             return t;
         }
         public void Resize(int width = -1, int height = -1)
         {
-            if (width <= 0) width = img[0].Width;
-            if (height <= 0) height = img[0].Height;
+            if (width <= 0) width = img[imgNum].Width;
+            if (height <= 0) height = img[imgNum].Height;
+            //TODO Add recalc frame width and height
+            double kWidth = width / this.Width;
+            double kHeight = height / this.Height;
             contour.Width = width;
             contour.Height = height;
             collisionContur = CreateContour(contour);
             center = new Vector2(width / 2, height / 2);
         }
-        public Tile(string imageName = null, SpriteBatch sb = null)
+        public Tile(string imageName = null, SpriteBatch sb = null, int frameWidth = 0, int frameHeight = 0)
         {
             img = new List<Texture2D>();
             if (imageName != null)
             {
+
                 img.Add(g.Content.Load<Texture2D>(imageName));
-                contour = new Rectangle(0, 0, img[0].Width, img[0].Height);
-                center = new Vector2(img[0].Width / 2, img[0].Height / 2);
+                if (frameWidth == 0) frameWidth = img[0].Width;
+                if (frameHeight == 0) frameHeight = img[0].Height;
+                contour = new Rectangle(0, 0, frameWidth, frameHeight);
+                center = new Vector2(frameWidth / 2, frameHeight / 2);
+                currFrameRect = new Rectangle(0,0,frameWidth,frameHeight);
+                this.frameWidth = frameWidth;
+                this.frameHeigth = frameHeigth;
             }
             passable = true;
             options = new Dictionary<string, string>();
@@ -110,13 +163,29 @@ namespace Game1
         public virtual void Draw(float x, float y, int width = 0, int height = 0)
         {
             if (!Visible) return;
-            contour.X = (int)position.X + (int)x + contour.Width / 2;
-            contour.Y = (int)position.Y + (int)y + contour.Height / 2;
-            sb.Draw(img[imgNum], contour, null, Color.White, angle, center, SpriteEffects.None, 0);
+            contour.X = (int)position.X + (int)x + (int)center.X;
+            contour.Y = (int)position.Y + (int)y + (int)center.Y;
+            if (name == "box")
+            { }
+            sb.Draw(img[imgNum], contour, currFrameRect, Color.White, angle, center, SpriteEffects.None, 0);
         }
         public void Update(GameTime gt)
         {
+            if (NeedAnim)
+            {
+                time += gt.ElapsedGameTime.Milliseconds;
 
+                if (time > animSpeed)
+                {
+                    currFrameRect.X += currFrameRect.Width;
+                    time = 0;
+                }
+                if (currFrameRect.X / currFrameRect.Width >= locusOfFrame.Length)
+                {
+                     currFrameRect.X = 0;
+                     currFrameRect.Y = 0;
+                }
+            }
         }
         public bool TryCollision(Tile t, Vector2 thisOffset, Vector2 offset,float angle)
         {

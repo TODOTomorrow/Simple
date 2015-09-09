@@ -68,7 +68,9 @@ namespace Game1
             int endY = (int)((-y + height) / mainTile.Height + 1);
             for (int i = startY; i < endY && i < this.height; i++)
                 for (int j = startX; j < endX && j < this.width; j++)
+                {
                     data[i, j].Draw(x, y);
+                }
         }
 
         public void Update(GameTime gt)

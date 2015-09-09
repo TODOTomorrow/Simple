@@ -136,6 +136,7 @@ namespace Game1
             RotateSpeed = 2.7f;
             AddTile(t, 0, 0);
         }
+
         public Actor(Rectangle profile, string name = "",float angle = 0)
         {
             this.profile = profile;
@@ -146,6 +147,13 @@ namespace Game1
             cr = new CollisionRect(int.MaxValue,int.MaxValue);
             RotateSpeed = 2.7f;
         }
+
+        public void StartAnim()
+        {
+            foreach (Tile t in tiles)
+                t.Animate();
+        }
+
         public void AddTile(Tile t, float xOffset = 0, int yOffset = 0)
         {
             tiles.Add((Tile)t.Clone());

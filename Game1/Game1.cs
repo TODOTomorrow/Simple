@@ -97,8 +97,6 @@ namespace Game1
             mainHero.onMove += onActorMoved;
             mainHero.speed = 0.5f;
             mainHero.RotateSpeed = 100;
-            scn.window.X = 100;
-            scn.window.Y = 100;
             scn.onMapOut += onSomebodyMapout;
             //mainHero.Rotate((float)(Math.PI*2/3));
             //makeMoveTest(mainHero);
