@@ -6,11 +6,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Xml;
+using NLua;
 
 namespace Game1
 {
     
-    class TileMap : IDrawable
+    public class TileMap : IDrawable
     {
         public SpriteBatch spriteBatch { set { this.sb = value; foreach (Tile t in data) t.spriteBatch = value; } }
         public int WidthTile { get { return width; } }
@@ -25,6 +26,21 @@ namespace Game1
         Tile[,] data;
         SpriteBatch sb;
         Tile mainTile;
+        private Dictionary<string, List<LuaFunction>> luaEvents;
+        public void Raise(string eventName, params object[] parameters)
+        {
+            eventName = eventName.ToLower().Trim();
+            if (!luaEvents.ContainsKey(eventName)) return;
+            foreach (LuaFunction currFunc in luaEvents[eventName])
+                currFunc.Call(parameters);
+        }
+
+        public void on(string eventName, LuaFunction func)
+        {
+            if (!luaEvents.ContainsKey(eventName))
+                luaEvents[eventName.ToLower().Trim()] = new List<LuaFunction>();
+            luaEvents[eventName.ToLower().Trim()].Add(func);
+        }
         public void Reindex(Vector2 offset, Rectangle collisionRect)
         {
             foreach (Tile t in data)
@@ -44,6 +60,7 @@ namespace Game1
                 }
             this.sb = sb;
             this.mainTile = defaultTile;
+            luaEvents = new Dictionary<string, List<LuaFunction>>();
         }
         public void AddObject(Tile t, int x, int y)
         {

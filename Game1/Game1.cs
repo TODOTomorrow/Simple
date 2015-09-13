@@ -54,13 +54,20 @@ namespace Game1
         SpriteBatch spriteBatch;
         UserControl uc;
         public static Debugger dbg;
+        public static Game1 MainGame;
         Stage scn;
         Actor mainHero;
+        SpriteFont systemFont;
+        Timer timer = new Timer();
+        Theatre mainTheatre = new Theatre();
+        Stage menu;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             Tile.g = this;
+            MainGame = this;
         }
 
         /// <summary>
@@ -84,22 +91,68 @@ namespace Game1
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            ResourceLoader rsldr = new ResourceLoader("./Content/init.lua");
-            mainHero = rsldr.Persons[0];
-            scn = rsldr.CreateStage(spriteBatch,"main");
             uc = new UserControl();
-            uc.onKeydown += keyDowned;
-            uc.onMouseLeftDown += mouseMoved;
-            IsMouseVisible = true;
+            LuaInterfacer li = new LuaInterfacer();
+            li.SetGlobal("UserControl", uc);
+            li.DoFile("./Content/init.lua");
+            scn = li.CreateStage(spriteBatch, "main");
+            mainTheatre.AddStage(scn);
             scn.CalibrateCollisions();
             scn.Reindex();
+            //ResourceLoader rsldr = new ResourceLoader("./Content/init.lua");
+            mainHero = li.actorList["Hero"];
+            //scn = rsldr.CreateStage(spriteBatch,"main");
+            
+            
+            uc.onKeydown += keyDowned;
+            uc.onMouseLeftDown += mouseMoved;
+            
+            IsMouseVisible = true;
+            
             mainHero.onCollision += onCollision;
             mainHero.onMove += onActorMoved;
             mainHero.speed = 0.5f;
             mainHero.RotateSpeed = 100;
             scn.onMapOut += onSomebodyMapout;
-            //mainHero.Rotate((float)(Math.PI*2/3));
+            mainHero.Rotate((float)(Math.PI*2/3));
             //makeMoveTest(mainHero);
+            systemFont = Content.Load<SpriteFont>("Courier New");
+            Text t1 = new Text("main hero");
+            t1.position.Y = -50;
+            t1.position.X = -50;
+            mainHero.AddText(t1);
+
+            int middleDisplay = GraphicsDevice.Viewport.Width/2;
+            menu = new Stage(this.spriteBatch, 1024, 768, new Rectangle(0,0,400, 400));
+
+            Button newGameButton = new Button("New game", GraphicsDevice, spriteBatch);
+            newGameButton.BackgroundImage = "Plit.png";
+            newGameButton.onClick += NewGameFunc;
+
+            Button exitButton = new Button("Exit", GraphicsDevice, spriteBatch);
+            exitButton.BackgroundImage = "Plit.png";
+            exitButton.onClick += ExitFunc;
+
+            Panel p = new Panel(GraphicsDevice.Viewport.Width,GraphicsDevice.Viewport.Height);
+            p.position.Y = 10;
+            p.AddControl(newGameButton);
+            p.AddControl(exitButton);
+
+            menu.AddControl(p);
+
+            mainTheatre.AddStage(menu);
+
+            mainTheatre.Disable(scn);
+            //mainTheatre.Disable(menu);
+        }
+        void NewGameFunc(Control c)
+        {
+            mainTheatre.Disable(menu);
+            mainTheatre.Enable(scn);
+        }
+        void ExitFunc(Control c)
+        {
+            this.Exit();
         }
         void onSomebodyMapout(Actor act)
         {
@@ -139,6 +192,7 @@ namespace Game1
         }
         void keyDowned(KeyboardState ks)
         {
+            mainTheatre.Enable(scn);
             int k = 5;
             Vector2 curPos = mainHero.position;
             float rotateAngle = 0;
@@ -177,7 +231,8 @@ namespace Game1
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             uc.Update(gameTime);
-            scn.Update(gameTime);
+            mainTheatre.Update(gameTime);
+            timer.Update(gameTime);
             base.Update(gameTime);
         }
 
@@ -188,7 +243,7 @@ namespace Game1
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            scn.Draw();
+            mainTheatre.Draw();
             base.Draw(gameTime);
         }
     }

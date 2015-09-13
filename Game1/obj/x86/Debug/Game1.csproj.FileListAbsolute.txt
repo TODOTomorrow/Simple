@@ -24,3 +24,5 @@ C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\Wind
 C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\KopiLua.dll
 C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\NLua.dll
 C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Content\init.lua
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Content\Courier New.xnb
+C:\Users\alexander\Desktop\education\winapi\лаб1\project\Game1\Game1\bin\WindowsGL\Debug\Content\Courier New.spritefont

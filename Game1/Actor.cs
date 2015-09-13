@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Xml;
+using NLua;
 
 namespace Game1
 {
@@ -23,7 +24,9 @@ namespace Game1
         public ActorEvent onMapOut;
         public ActorState State { get { return state; } }
         public CollisionRect cr;
+        public bool visible = true;
         float _angle;
+
         public float angle
         {
             get { return _angle; }
@@ -59,12 +62,34 @@ namespace Game1
         private double dySpeed;
         private Vector2 endPoint = new Vector2();
         private bool moveToLeft, moveUp;
-
+        private Dictionary<string, List<LuaFunction>> luaEvents;
         private float rotateToAngle;
         bool inRotation = false;
         bool incRotate = false;
         float movedRotate = 0;
-        const float rotateEps = 0.03f;        
+        const float rotateEps = 0.03f;
+        List<Text> texts = new List<Text>();
+
+        public void AddText(Text t)
+        {
+            texts.Add(t);
+            t.spriteBatch = sb;
+        }
+
+        public void Raise(string eventName, params object[] parameters)
+        {
+            eventName = eventName.ToLower().Trim();
+            if (!luaEvents.ContainsKey(eventName)) return;
+            foreach (LuaFunction currFunc in luaEvents[eventName])
+                currFunc.Call(parameters);
+        }
+
+        public void on(string eventName, LuaFunction func)
+        {
+            if (!luaEvents.ContainsKey(eventName))
+                luaEvents[eventName.ToLower().Trim()] = new List<LuaFunction>();
+            luaEvents[eventName.ToLower().Trim()].Add(func);
+        }
 
         public CollisionRect Reindex(Vector2 offset, Rectangle collisionRectangle)
         {
@@ -113,6 +138,7 @@ namespace Game1
             {
                 inRotation = false;
                 angle = rotateToAngle;
+                Raise("rotateend", this);
             }
             foreach (Tile t in tiles)
                 t.Rotate(angle);
@@ -135,6 +161,7 @@ namespace Game1
             cr = new CollisionRect(int.MaxValue, int.MaxValue);
             RotateSpeed = 2.7f;
             AddTile(t, 0, 0);
+            luaEvents = new Dictionary<string, List<LuaFunction>>();
         }
 
         public Actor(Rectangle profile, string name = "",float angle = 0)
@@ -146,6 +173,7 @@ namespace Game1
             tiles = new List<Tile>();
             cr = new CollisionRect(int.MaxValue,int.MaxValue);
             RotateSpeed = 2.7f;
+            luaEvents = new Dictionary<string, List<LuaFunction>>();
         }
 
         public void StartAnim()
@@ -167,12 +195,22 @@ namespace Game1
             foreach (Tile t in tiles)
                 AddTile(t);
         }
+        public void DrawText(float x, float y, int width = 0, int height = 0)
+        {
+            foreach (Text t in texts)
+                t.Draw(x,y,width,height);
+        }
         public void Draw(float x, float y, int width = 0, int height = 0)
         {
+            if (!visible) return;
+            DrawText(position.X + x, position.Y + y, width, height);
             foreach (Tile t in tiles)
                 t.Draw(position.X + x, position.Y + y);
         }
-
+        public void Move(int x, int y)
+        {
+            Move(new Vector2(x,y));
+        }
         public void Move(Vector2 p)
         {
             double x1 = p.X;
@@ -225,8 +263,10 @@ namespace Game1
                 endPoint.X = float.NaN;
                 endPoint.Y = float.NaN;
                 state = ActorState.Stop;
+                Raise("onmoveend", this);
             }
             if (onMove != null) onMove(this);
+            Raise("onmove",this);
         }
         public void Update(GameTime gt)
         {
@@ -239,7 +279,8 @@ namespace Game1
             foreach (Tile t in p.tiles)
                 if (Collision(t, p.position))
                 {
-                    if (onCollision != null) onCollision(this, p);
+                    if (onCollision != null)    onCollision(this, p);
+                    Raise("oncollision", this, p);
                     return true;
                 }
             return false;
@@ -250,7 +291,9 @@ namespace Game1
             foreach (Tile myTile in tiles)
                 if (myTile.Collision(t, this.position, tileOffset))
                 {
-                    if (onCollision != null && collisionEventFlag) onCollision(this, t);
+                    if (onCollision != null && collisionEventFlag)
+                            onCollision(this, t);
+                    if (collisionEventFlag) Raise("oncollision", this, t);
                     return true;
                 }
             return false;

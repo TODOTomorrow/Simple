@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Xml;
+using NLua;
 
 namespace Game1
 {
@@ -15,7 +16,7 @@ namespace Game1
         public static Random randomizer = new Random();
         public string name;
         public Dictionary<string, string> options;
-        public SpriteBatch spriteBatch { set { this.sb = value; } }
+        public SpriteBatch spriteBatch { set { this.sb = value; foreach (Text t in texts) t.spriteBatch = sb; } }
         public Vector2 position;
         public int Width { get { return contour.Width; } }
         public int Height { get { return contour.Height; } }
@@ -28,6 +29,11 @@ namespace Game1
         public int frameHeigth { get { return currFrameRect.Height; } set { currFrameRect.Height = value; } }//ШИРИНА КАДРА
         public float animSpeed = 200;//СКОРОСТЬ АНИМАЦИИ
 
+        private Dictionary<string, List<LuaFunction>> luaEvents;
+        private Rectangle currFrameRect;
+        private static int[] locusOfFrame;
+        private float time = 0;
+
         int imgNum;
         List<Texture2D> img;
         Rectangle contour;
@@ -35,11 +41,31 @@ namespace Game1
         float angle = 0;
         List<Triangle> collisionContur;
         Vector2 center;
+        List<Text> texts = new List<Text>();
 
-        private Rectangle currFrameRect;
-        private static int[] locusOfFrame; //МАССИВ ПОСЛ-И КАДРОВ
-        //private int frame = 0;//НОМЕР ТЕКУЩЕГО КАДРА ИЗ МАССИВА locus_of_frame
-        private float time = 0;
+
+
+        public void AddText(Text t)
+        {
+            texts.Add(t);
+            t.spriteBatch = sb;
+        }
+
+
+        public void Raise(string eventName, params object[] parameters)
+        {
+            eventName = eventName.ToLower().Trim();
+            if (!luaEvents.ContainsKey(eventName)) return;
+            foreach (LuaFunction currFunc in luaEvents[eventName])
+                currFunc.Call(parameters);
+        }
+
+        public void on(string eventName, LuaFunction func)
+        {
+            if (!luaEvents.ContainsKey(eventName)) 
+                    luaEvents[eventName.ToLower().Trim()] = new List<LuaFunction>();
+            luaEvents[eventName.ToLower().Trim()].Add(func);
+        }
 
         public bool Animate(int[] anim = null)
         {
@@ -52,15 +78,9 @@ namespace Game1
                     anim[i] = i;
             }
             for (i = 0; i < anim.LongLength; i++)
-            {
                 if ((anim[i] * frameWidth) > img[imgNum].Width)
-                {
                     return false;
-                }
-            }
-            //ТУТ МЫ ВСЕ ЗАНУЛЯЕМ, Т.К. НУЖНО НАЧАТЬ НОВУЮ АНИМАЦИЮ => tile_anim НЕЛЬЗЯ ВЫЗЫВАТЬ ПОСТОЯННО, ИНАЧЕ ВСЕ СЛОМАЕТСЯ
             time = 0;
-            //frame = 0;
             currFrameRect.X = 0;
             currFrameRect.Y = 0;
 
@@ -69,7 +89,6 @@ namespace Game1
                 locusOfFrame[i] = anim[i];
 
             NeedAnim = true;
-
             return true;
         }
 
@@ -78,9 +97,7 @@ namespace Game1
         public CollisionRect Reindex(Vector2 offset, Rectangle collisionRectangle)
         {
             foreach (Triangle trgl in collisionContur)
-            {
                 cr = trgl.Reindex(offset + position, collisionRectangle);
-            }
             return cr;
         }
 
@@ -123,6 +140,9 @@ namespace Game1
             imgNum = randomizer.Next(img.Count - 1);
             t.imgNum = imgNum;
             t.currFrameRect = new Rectangle(currFrameRect.X, currFrameRect.Y, currFrameRect.Width, currFrameRect.Height);
+            t.animSpeed = animSpeed;
+            t.NeedAnim = NeedAnim;
+            t.luaEvents = new Dictionary<string, List<LuaFunction>>(luaEvents);
             return t;
         }
         public void Resize(int width = -1, int height = -1)
@@ -135,15 +155,20 @@ namespace Game1
             contour.Width = width;
             contour.Height = height;
             collisionContur = CreateContour(contour);
-            center = new Vector2(width / 2, height / 2);
+            center = new Vector2(frameWidth / 2, frameHeigth / 2);
         }
-        public Tile(string imageName = null, SpriteBatch sb = null, int frameWidth = 0, int frameHeight = 0)
+        public Tile(object imageName = null, SpriteBatch sb = null, int frameWidth = 0, int frameHeight = 0)
         {
             img = new List<Texture2D>();
+
             if (imageName != null)
             {
+                if (imageName.GetType() == typeof(Texture2D))
+                    img.Add((Texture2D)imageName);
+                else if (imageName.GetType() == typeof(String))
+                    img.Add(g.Content.Load<Texture2D>((String)imageName));
+                else throw new Exception("Error type in Tile initializing");
 
-                img.Add(g.Content.Load<Texture2D>(imageName));
                 if (frameWidth == 0) frameWidth = img[0].Width;
                 if (frameHeight == 0) frameHeight = img[0].Height;
                 contour = new Rectangle(0, 0, frameWidth, frameHeight);
@@ -152,22 +177,29 @@ namespace Game1
                 this.frameWidth = frameWidth;
                 this.frameHeigth = frameHeigth;
             }
+
             passable = true;
             options = new Dictionary<string, string>();
             this.sb = sb;
             position = new Vector2(0, 0);
             collisionContur = CreateContour(contour);
             cr = new CollisionRect(int.MaxValue, int.MaxValue);
+            luaEvents = new Dictionary<string, List<LuaFunction>>();
+        }
+
+        public void DrawText(float x, float y, int width = 0, int height = 0)
+        {
+            foreach (Text t in texts)
+                t.Draw(x,y,width,height);
         }
 
         public virtual void Draw(float x, float y, int width = 0, int height = 0)
         {
             if (!Visible) return;
-            contour.X = (int)position.X + (int)x + (int)center.X;
-            contour.Y = (int)position.Y + (int)y + (int)center.Y;
-            if (name == "box")
-            { }
-            sb.Draw(img[imgNum], contour, currFrameRect, Color.White, angle, center, SpriteEffects.None, 0);
+            contour.X = (int)position.X + (int)x;// +(int)center.X / 4;
+            contour.Y = (int)position.Y + (int)y;// +(int)center.Y / 4;
+            sb.Draw(img[imgNum], null, contour, currFrameRect, center, angle, null,Color.White, SpriteEffects.None, 0);
+            DrawText(contour.X, contour.Y, width, height);
         }
         public void Update(GameTime gt)
         {
@@ -204,6 +236,7 @@ namespace Game1
                     if (trgl.Collision(trgl2, thisOffset + position, t.position + offset))
                     {
                         if (onCollision != null) onCollision(this, t);
+                        this.Raise("onCollision",this,t);
                         return true;
                     }
             return false;

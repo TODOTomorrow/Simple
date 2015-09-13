@@ -7,26 +7,16 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Xml;
 using NLua;
-
 namespace Game1
 {
-    class ResourceLoader
+   /* class ResourceLoader
     {
         public Dictionary<String, Tile> Sprites;
         public Dictionary<String, TileMap> Maps;
         public List<Actor> Persons;
         public Settings settings;
         Tile badSprite;
-        public Stage CreateStage(SpriteBatch sb,string mapName)
-        {
-            if (settings.width<=0) settings.width = sb.GraphicsDevice.DisplayMode.Width;
-            if (settings.height<=0) settings.height = sb.GraphicsDevice.DisplayMode.Height;
-            TileMap tm = this.Maps[mapName];
-            Stage stg = new Stage(sb,tm.WidthTile,tm.HeightTile, new Rectangle(settings.x,settings.y,settings.width,settings.height));
-            stg.Background = tm;
-            stg.addActor(this.Persons);
-            return stg;
-        }
+
 
         public ResourceLoader(String ResourceFileName)
         {
@@ -45,12 +35,43 @@ namespace Game1
             this.Persons = lint.GetActorList();
             this.Maps = lint.mapList;
         }
-        public class LuaInterfacer
+    }*/
+        class LuaInterfacer
         {
             public Dictionary<String, Tile> tileList = new Dictionary<string, Tile>();
             public Dictionary<String, TileMap> mapList = new Dictionary<string, TileMap>();
             public Dictionary<String, Actor> actorList = new Dictionary<string, Actor>();
             public Settings set;
+            public Lua luaContext = new Lua();
+            private Dictionary<string, List<LuaFunction>> luaEvents;
+
+            public void Raise(string eventName, params object[] parameters)
+            {
+                if (!luaEvents.ContainsKey(eventName)) return;
+                foreach (LuaFunction currFunc in luaEvents[eventName])
+                    currFunc.Call(parameters);
+            }
+
+            public void on(string eventName, LuaFunction func)
+            {
+                if (!luaEvents.ContainsKey(eventName))
+                    luaEvents[eventName.ToLower().Trim()] = new List<LuaFunction>();
+                luaEvents[eventName.ToLower().Trim()].Add(func);
+            }
+            public void DoFile(string fileName)
+            {
+                if (!System.IO.File.Exists(fileName))
+                    throw new GameException("Game resource '" + fileName + "' not found", GameException.LevelCatastrophic);
+                luaContext.DoFile(fileName);
+            }
+            public LuaInterfacer()
+            {
+                
+                luaEvents = new Dictionary<string, List<LuaFunction>>();
+                luaContext["Simple"] = this;
+                luaContext["ActorMoved"] = ActorState.Move;
+                return;
+            }
 
             public List<Actor> GetActorList()
             {
@@ -90,6 +111,31 @@ namespace Game1
                 actorList[name] = act;
                 return act;
             }
+
+
+            int stageNumber = 0;
+            public Stage CreateStage(SpriteBatch sb, string mapName)
+            {
+                if (set.width <= 0) set.width = sb.GraphicsDevice.DisplayMode.Width;
+                if (set.height <= 0) set.height = sb.GraphicsDevice.DisplayMode.Height;
+                TileMap tm = this.mapList[mapName];
+                Stage stg = new Stage(sb, tm.WidthTile, tm.HeightTile, new Rectangle(set.x, set.y, set.width, set.height));
+                stg.Background = tm;
+                stg.addActor(GetActorList());
+                luaContext["stage" + stageNumber] = stg;
+                return stg;
+            }
+
+            public void SetGlobal(string name,object obj)
+            {
+                luaContext[name] = obj;
+            }
+
+            public void Log(params object[] objs)
+            {
+                foreach (object obj in objs)
+                    Console.WriteLine(obj.ToString());
+            }
         }
-    }
+    
 }

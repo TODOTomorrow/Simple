@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Xml;
+using NLua;
 
 namespace Game1
 {
@@ -54,7 +55,7 @@ namespace Game1
     }
     public delegate void onCollisionEvent(Object o1, Object o2);
     public delegate void onEventTileMap(Actor act);
-    class Stage 
+    public class Stage 
     {
         public int Width { get { return background.WidthPix; } }
         public int Height { get { return background.HeightPix; } }
@@ -66,6 +67,27 @@ namespace Game1
         SpriteBatch spriteBatch;
         Rectangle collisionIndexRect;
         public event onEventTileMap onMapOut;
+        private Dictionary<string, List<LuaFunction>> luaEvents;
+        List<Control> controls = new List<Control>();
+        public void AddControl(Control c)
+        {
+            controls.Add(c);
+        }
+
+        public void Raise(string eventName, params object[] parameters)
+        {
+            eventName = eventName.ToLower().Trim();
+            if (!luaEvents.ContainsKey(eventName)) return;
+            foreach (LuaFunction currFunc in luaEvents[eventName])
+                currFunc.Call(parameters);
+        }
+
+        public void on(string eventName, LuaFunction func)
+        {
+            if (!luaEvents.ContainsKey(eventName))
+                luaEvents[eventName.ToLower().Trim()] = new List<LuaFunction>();
+            luaEvents[eventName.ToLower().Trim()].Add(func);
+        }
         public void Reindex()
         {
             foreach (Actor a in actors)
@@ -101,7 +123,10 @@ namespace Game1
         }
         public void Update(GameTime gt)
         {
-            background.Update(gt);
+            if (background != null)
+                background.Update(gt);
+            foreach (Control c in controls)
+                c.Update(gt);
             foreach (Actor act in actors)
                 act.Update(gt);
             Collision();
@@ -109,7 +134,9 @@ namespace Game1
         public void Draw()
         {
             spriteBatch.Begin();
-            background.Draw(-window.X,-window.Y,window.Width,window.Height);
+            if (background != null) background.Draw(-window.X,-window.Y,window.Width,window.Height);
+            foreach (Control c in controls)
+                c.Draw(-window.X, -window.Y, window.Width, window.Height);
             foreach (Actor act in actors)
                 act.Draw(-window.X, -window.Y);
             spriteBatch.End();
@@ -139,6 +166,7 @@ namespace Game1
             {
                 if (act.onMapOut != null) act.onMapOut(act);
                 if (onMapOut != null) onMapOut(act);
+                Raise("onmapout",act);
             }
         }
         public void addActor(Actor act)
@@ -160,6 +188,7 @@ namespace Game1
             actors = new List<Actor>();
             this.width = width;
             this.height = height;
+            luaEvents = new Dictionary<string, List<LuaFunction>>();
         }
     }
 }

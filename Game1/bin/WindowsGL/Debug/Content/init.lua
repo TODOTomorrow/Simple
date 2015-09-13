@@ -26,6 +26,9 @@ mainMap:AddObject(boxTile,10,12);
 mainMap:AddObject(boxTile,10,11);
 mainMap:AddObject(boxTile,10,10);
 mainMap:AddObject(boxTile,10,8);
+mainMap:AddObject(boxTile,1,1);
+mainMap:AddObject(boxTile,2,2);
+mainMap:AddObject(boxTile,3,3);
 
 heroActor = Simple:CreateActor("Hero",mainHero,300,300);
 heroActor:StartAnim();
